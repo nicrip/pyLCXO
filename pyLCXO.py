@@ -7,7 +7,7 @@ import time
 import datetime
 import sys
 import curses
-from geomag import geomag
+from .geomag import geomag
 
 class LCXO(object):
     def __init__(self, port, baud, timeout):
