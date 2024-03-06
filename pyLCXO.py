@@ -4,7 +4,6 @@
 import serial
 import re
 import time
-import math
 import datetime
 import sys
 import curses
@@ -45,6 +44,9 @@ class LCXO(object):
         self.time_interval_diff = -1
         self.health_status = 'none'
 
+        self.pulse_freq = 2
+        self.pulse_period_us = 500000
+
         self.geomag = geomag.GeoMag()
         self.magnetic_declination = -14.42   #declination at MIT
 
@@ -79,7 +81,7 @@ class LCXO(object):
             console.addstr(2,0,'UTC:')
             console.addstr(3,0,'    Seconds: {:10.3f} s'.format(self.utc))
             console.addstr(4,0,'    Date: {:06d}'.format(self.utc_date))
-            console.addstr(5,0,'    Time: {:6.3f} s'.format(self.utc_time))
+            console.addstr(5,0,'    Time: {:06.3f} s'.format(self.utc_time))
             console.addstr(6,0,'')
             console.addstr(7,0,'Position:')
             console.addstr(8,0,'    Status: {}'.format(self.gps_receiver_status))
@@ -227,6 +229,30 @@ class LCXO(object):
         self.utc = (dt - datetime.datetime(1970, 1, 1)).total_seconds()
         # print(dt)
         # print(self.utc)
+
+    def setPulseFreq(self, freq=None):
+        if freq is None:
+            a = 'p\r'
+        else:
+            a = 'p{}\r'.format(int(freq))
+        self.LCXO.write(a.encode('utf-8'))
+        while True:
+            b = self.LCXO.readline()
+            s = b.decode('utf-8')
+            # print(s)
+            if 'Unknown command' in s:
+                break
+            if not b:
+                break
+            if 'Pulse number' in s:
+                sa = re.split(': |\r', s)
+                self.pulse_freq = int(sa[1])
+                # print(self.pulse_freq)
+            if 'Trigger period' in s:
+                sa = re.split(': |\r', s)
+                self.pulse_period_us = int(sa[1])
+                # print(self.pulse_period_us)
+                break
 
     def readOCXOSync(self):
         self.LCXO.write(b'cSYNC?\r')
