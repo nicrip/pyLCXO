@@ -189,8 +189,9 @@ class LCXO(object):
                 sa = re.split(' Degrees\r', s)
                 self.course_over_ground = float(sa[0])
                 # print(self.course_over_ground)
-                mag = self.geomag.GeoMag(self.latitude, self.longitude)
-                self.magnetic_declination = mag.dec
+                if (self.latitude != 0 and self.longitude != 0):
+                    mag = self.geomag.GeoMag(self.latitude, self.longitude)
+                    self.magnetic_declination = mag.dec
                 # print(self.magnetic_declination)
             if 'GPS Receiver Status' in s:
                 sa = re.split(': |\r', s)
